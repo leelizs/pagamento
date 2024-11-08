@@ -1,5 +1,3 @@
-"use strict";
-
 const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
@@ -9,7 +7,6 @@ const { obterToken } = require("./create-qrcode");
 require("dotenv").config();  // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
-//console.log("Certificado carregado com sucesso", certificadoBuffer.length); // Log para verificar o tamanho do certificado
 
 // Salve o arquivo temporariamente
 const tempPath = path.join(__dirname, "certificado_temp.p12");
@@ -22,7 +19,6 @@ const certificado = fs.readFileSync(tempPath);
 async function verificarStatusPagamento(txid) {
   try {
     const token = await obterToken();
-    alert("Token gerado:", token);
 
     const agent = new https.Agent({
       pfx: certificado,
@@ -42,9 +38,21 @@ async function verificarStatusPagamento(txid) {
     const statusResponse = await axios(configStatus);
     return statusResponse.data;
   } catch (error) {
-    console.error("Erro ao verificar o status do pagamento:", error.message);
-    throw error;
+    throw new Error("Erro ao verificar o status do pagamento");
   }
 }
 
-module.exports = { verificarStatusPagamento };
+// Função serverless para Vercel
+module.exports = async (req, res) => {
+  if (req.method === "GET") {
+    try {
+      const { txid } = req.query;
+      const statusData = await verificarStatusPagamento(txid);
+      res.status(200).json(statusData);
+    } catch (error) {
+      res.status(500).json({ error: "Erro ao verificar status de pagamento" });
+    }
+  } else {
+    res.status(405).json({ error: "Método não permitido" });
+  }
+};
