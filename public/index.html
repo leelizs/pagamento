@@ -70,8 +70,10 @@
                 body: JSON.stringify({ valor: valorFormatado })
             })
                 .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => { throw new Error(text); });
+                    // Verifique se o tipo de conteúdo é JSON
+                    const contentType = response.headers.get("Content-Type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        throw new Error("Esperado JSON, mas a resposta não é JSON.");
                     }
                     return response.json();
                 })
