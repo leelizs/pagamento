@@ -1,24 +1,23 @@
 {
-    "version": 2,
-    "builds": [
+  "version": 2,
+  "builds": [
       {
-        "src": "api/create-qrcode.js",
-        "use": "@vercel/node"
+          "src": "api/create-qrcode.js",
+          "use": "@vercel/node"
       },
       {
-        "src": "api/verificar-status.js",
-        "use": "@vercel/node"
+          "src": "api/verificar-status.js",
+          "use": "@vercel/node"
       }
-    ],
-    "routes": [
+  ],
+  "rewrites": [
       {
-        "src": "/api/create-qrcode",
-        "dest": "/api/create-qrcode.js"
+          "source": "/api/create-qrcode",
+          "destination": "/api/create-qrcode.js"
       },
       {
-        "src": "/api/verificar-status",
-        "dest": "/api/verificar-status.js"
+          "source": "/api/verificar-status/:txid",
+          "destination": "/api/verificar-status.js"
       }
-    ]
-  }
-  
+  ]
+}
