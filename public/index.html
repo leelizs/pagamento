@@ -64,7 +64,7 @@
             const valorFormatado = parseFloat(valor).toFixed(2);
             document.getElementById("qrcode").innerHTML = "<p>Gerando QR Code...</p>";
 
-            fetch("/create-qrcode", {
+            fetch("/create-qrcode", { // Mudança para o novo endpoint
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ valor: valorFormatado })
@@ -77,13 +77,12 @@
                         return;
                     }
 
-                    // Acessando diretamente os dados do QR Code
-                    const { imagemQrcode, txid, copiaECola } = data.qrcode;  // Acesso direto à resposta do QR Code
+                    const { imagemQrcode, txid, copiaECola } = data.qrcode;
 
                     if (copiaECola && txid) {
-                        mostrarQRCodeModal(copiaECola, expiracaoTempo); // Mostrar QR Code
-                        salvarQRCodeLocal(copiaECola, txid); // Salvar dados no localStorage
-                        iniciarVerificacaoPagamento(txid); // Iniciar verificação do pagamento com txid
+                        mostrarQRCodeModal(copiaECola, expiracaoTempo);
+                        salvarQRCodeLocal(copiaECola, txid);
+                        iniciarVerificacaoPagamento(txid);
                     } else {
                         console.error("Resposta da API PIX incompleta:", data);
                         document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: dados incompletos.</p>";
@@ -163,7 +162,7 @@
             }
 
             const intervalo = setInterval(() => {
-                fetch(`/verificar-status/${txid}`)
+                fetch(`/verificar-status/${txid}`) // Mudança para o novo endpoint
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === "CONCLUIDA") {
