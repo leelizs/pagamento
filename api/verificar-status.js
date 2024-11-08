@@ -1,19 +1,11 @@
 const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
-const path = require("path");
 const { obterToken } = require("./create-qrcode");
 
 require("dotenv").config();  // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
-
-// Salve o arquivo temporariamente
-const tempPath = path.join(__dirname, "certificado_temp.p12");
-fs.writeFileSync(tempPath, certificadoBuffer);
-
-// Agora você pode usar `tempPath` para carregar o certificado
-const certificado = fs.readFileSync(tempPath);
 
 // Função para verificar o status do pagamento
 async function verificarStatusPagamento(txid) {
@@ -21,7 +13,7 @@ async function verificarStatusPagamento(txid) {
     const token = await obterToken();
 
     const agent = new https.Agent({
-      pfx: certificado,
+      pfx: certificadoBuffer,
       passphrase: "",
     });
 

@@ -1,18 +1,10 @@
 const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
-const path = require("path");
 
 require("dotenv").config();  // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
-
-// Salve o arquivo temporariamente (em uma função serverless, isso não é recomendado, você pode querer usar o fs temporário)
-const tempPath = path.join(__dirname, "certificado_temp.p12");
-fs.writeFileSync(tempPath, certificadoBuffer);
-
-// Agora você pode usar `tempPath` para carregar o certificado
-const certificado = fs.readFileSync(tempPath);
 
 // Credenciais PIX (agora a partir do arquivo .env)
 const credenciais = {
@@ -27,7 +19,7 @@ async function obterToken() {
     const auth = Buffer.from(data_credentials).toString("base64");
 
     const agent = new https.Agent({
-      pfx: certificado,
+      pfx: certificadoBuffer,
       passphrase: "",
     });
 
@@ -58,7 +50,7 @@ async function gerarQRCode(valor) {
     const token = await obterToken();
 
     const agent = new https.Agent({
-      pfx: certificado,
+      pfx: certificadoBuffer,
       passphrase: "",
     });
 
@@ -74,29 +66,49 @@ async function gerarQRCode(valor) {
         calendario: { expiracao: 600 },
         valor: { original: valor },
         chave: "0a2814e9-73ac-4e23-894e-c40ff3f8e0e9",
-        solicitacaoPagador: "Pagamento do QR Code",
+        solicitacaoPagador: "Pagamento em Família de Ouro",
       },
     };
 
+    // Fazendo a requisição e obtendo a resposta
     const qrcodeResponse = await axios(qrcodeConfig);
+
+    // Log da resposta para debug
+    console.log("Resposta da API:", qrcodeResponse);
+    console.log("Tipo de conteúdo:", qrcodeResponse.headers["content-type"]);
+
+    // Verifica se o conteúdo retornado é JSON
+    if (!qrcodeResponse.headers["content-type"].includes("application/json")) {
+      console.error("A resposta não é JSON, tipo encontrado:", qrcodeResponse.headers["content-type"]);
+      throw new Error("Resposta da API não é JSON");
+    }
+
+    // Se a resposta for JSON, continue com o processamento
     return {
       qrcodeData: qrcodeResponse.data,
       txid: qrcodeResponse.data.txid,
       copiaECola: qrcodeResponse.data.pixCopiaECola,
     };
   } catch (error) {
+    console.error("Erro ao gerar QR Code:", error);
     throw new Error("Erro ao gerar QR Code");
   }
 }
 
+
 // Função serverless para Vercel
 module.exports = async (req, res) => {
+  console.log('Função chamada com método:', req.method);
   if (req.method === "POST") {
     try {
       const { valor } = req.body;
       const valorFormatado = parseFloat(valor).toFixed(2);
 
       const qrcodeData = await gerarQRCode(valorFormatado);
+
+      if (!qrcodeData) {
+        res.status(500).json({ error: "Erro ao gerar QR Code." });
+      }
 
       res.status(200).json({
         qrcode: {

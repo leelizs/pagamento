@@ -3,3 +3,4 @@ node_modules/
 producao-635811-producao.p12
 certificado_base64.txt
 certificado_temp.p12
+.vercel
