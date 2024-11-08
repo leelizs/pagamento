@@ -6,6 +6,7 @@ const fs = require("fs");
 require("dotenv").config();  // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
+console.log("Certificado carregado com sucesso", certificadoBuffer.length); // Log para verificar o tamanho do certificado
 
 // Salve o arquivo temporariamente
 const tempPath = path.join(__dirname, "certificado_temp.p12");
@@ -19,6 +20,10 @@ const credenciais = {
   client_id: process.env.CLIENT_ID,  // Usando variáveis de ambiente
   client_secret: process.env.CLIENT_SECRET,  // Usando variáveis de ambiente
 };
+
+console.log("CLIENT_ID:", process.env.CLIENT_ID);
+console.log("CLIENT_SECRET:", process.env.CLIENT_SECRET);
+
 
 // Função para obter o token de acesso
 async function obterToken() {
@@ -43,6 +48,11 @@ async function obterToken() {
     };
 
     const tokenResponse = await axios(configToken);
+    console.log("Token recebido:", tokenResponse.data);
+    if (tokenResponse.status !== 200) {
+      console.error("Erro ao obter token:", tokenResponse.status, tokenResponse.data);
+      throw new Error("Erro ao obter token");
+    }
     return tokenResponse.data.access_token;
   } catch (error) {
     console.error("Erro ao obter token:", error.response ? error.response.data : error.message);
@@ -79,6 +89,7 @@ async function gerarQRCode(valor) {
     };
 
     const qrcodeResponse = await axios(qrcodeConfig);
+    console.log(qrcodeResponse.data); // Adicionando log da resposta
     return {
       qrcodeData: qrcodeResponse.data,
       txid: qrcodeResponse.data.txid,
