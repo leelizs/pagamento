@@ -4,9 +4,15 @@ const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
 require("dotenv").config();  // Carregar variáveis de ambiente
+const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
+const certificadoBuffer = Buffer.from(base64, "base64");
 
-// Caminho do certificado .p12
-const certificado = fs.readFileSync("./producao-635811-producao.p12");
+// Salve o arquivo temporariamente
+const tempPath = path.join(__dirname, "certificado_temp.p12");
+fs.writeFileSync(tempPath, certificadoBuffer);
+
+// Agora você pode usar `tempPath` para carregar o certificado
+const certificado = fs.readFileSync(tempPath);
 
 // Credenciais PIX (agora a partir do arquivo .env)
 const credenciais = {
@@ -43,6 +49,8 @@ async function obterToken() {
     throw error;
   }
 }
+
+console.log(credenciais);
 
 // Função para gerar o QR Code
 async function gerarQRCode(valor) {

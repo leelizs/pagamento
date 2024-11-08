@@ -1,3 +1,4 @@
 node_modules/
 .env
 producao-635811-producao.p12
+certificado_base64.txt
