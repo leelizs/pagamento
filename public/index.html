@@ -69,7 +69,12 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ valor: valorFormatado })
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text); });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     console.log("Resposta da API:", data); // Exibe a resposta completa
 
@@ -91,8 +96,10 @@
                     mostrarQRCodeModal(copiaECola, 600);
                     salvarQRCodeLocal(copiaECola, data.txid);
                 })
-
-
+                .catch(error => {
+                    console.error("Erro:", error);
+                    alert("Erro ao gerar QR Code: " + error.message);
+                });
         }
 
         function mostrarQRCodeModal(codigoCopiaECola, tempoExpiracao) {
