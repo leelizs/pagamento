@@ -64,34 +64,32 @@
             const valorFormatado = parseFloat(valor).toFixed(2);
             document.getElementById("qrcode").innerHTML = "<p>Gerando QR Code...</p>";
 
-            fetch("/create-qrcode", { // Mudança para o novo endpoint
+            fetch("/create-qrcode", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ valor: valorFormatado })
             })
-                .then(response => response.json())
+                .then(response => response.text()) // Alteração para text() temporariamente
                 .then(data => {
-                    if (data.error) {
-                        console.error("Erro da API PIX:", data.error);
-                        document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: " + data.error + "</p>";
-                        return;
-                    }
-
-                    const { imagemQrcode, txid, copiaECola } = data.qrcode;
-
-                    if (copiaECola && txid) {
-                        mostrarQRCodeModal(copiaECola, expiracaoTempo);
-                        salvarQRCodeLocal(copiaECola, txid);
-                        iniciarVerificacaoPagamento(txid);
-                    } else {
-                        console.error("Resposta da API PIX incompleta:", data);
-                        document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: dados incompletos.</p>";
+                    console.log("Resposta da API:", data); // Verifique o que está sendo retornado
+                    try {
+                        const jsonData = JSON.parse(data); // Tente converter manualmente para JSON
+                        if (jsonData.error) {
+                            console.error("Erro da API PIX:", jsonData.error);
+                            document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: " + jsonData.error + "</p>";
+                            return;
+                        }
+                        // Continue com o processamento dos dados
+                    } catch (err) {
+                        console.error("Erro ao converter resposta para JSON:", err);
+                        document.getElementById("qrcode").innerHTML = "<p>Erro ao processar resposta do servidor.</p>";
                     }
                 })
                 .catch(error => {
                     console.error("Erro ao gerar QR Code:", error);
                     document.getElementById("qrcode").innerHTML = "<p>Erro inesperado ao gerar QR Code.</p>";
                 });
+
         }
 
         function mostrarQRCodeModal(codigoCopiaECola, tempoExpiracao) {
