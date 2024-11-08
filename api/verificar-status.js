@@ -22,6 +22,7 @@ const certificado = fs.readFileSync(tempPath);
 async function verificarStatusPagamento(txid) {
   try {
     const token = await obterToken();
+    alert("Token gerado:", token);
 
     const agent = new https.Agent({
       pfx: certificado,

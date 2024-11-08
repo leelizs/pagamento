@@ -73,7 +73,10 @@
                     // Verifique se o tipo de conteúdo é JSON
                     const contentType = response.headers.get("Content-Type");
                     if (!contentType || !contentType.includes("application/json")) {
-                        throw new Error("Esperado JSON, mas a resposta não é JSON.");
+                        return response.text().then(text => {
+                            console.error("Resposta da API não é JSON:", text);
+                            throw new Error("Esperado JSON, mas a resposta não é JSON.");
+                        });
                     }
                     return response.json();
                 })
