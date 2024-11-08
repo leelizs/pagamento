@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // Rota para criar o QR Code
-app.post("/create-qrcode", async (req, res) => {
+app.post("/api/create-qrcode", async (req, res) => {
   try {
     const { valor } = req.body;
     const valorFormatado = parseFloat(valor).toFixed(2);
@@ -35,7 +35,7 @@ app.post("/create-qrcode", async (req, res) => {
 });
 
 // Rota para consultar o status do pagamento
-app.get("/verificar-status/:txid", async (req, res) => {
+app.get("/api/verificar-status/:txid", async (req, res) => {
   try {
     const { txid } = req.params;
     const statusData = await verificarStatusPagamento(txid);

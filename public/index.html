@@ -64,7 +64,7 @@
             const valorFormatado = parseFloat(valor).toFixed(2);
             document.getElementById("qrcode").innerHTML = "<p>Gerando QR Code...</p>";
 
-            fetch("/create-qrcode", {
+            fetch("/api/create-qrcode", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ valor: valorFormatado })
@@ -160,7 +160,7 @@
             }
 
             const intervalo = setInterval(() => {
-                fetch(`/verificar-status/${txid}`) // Mudança para o novo endpoint
+                fetch(`/api/verificar-status/${txid}`) // Mudança para o novo endpoint
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === "CONCLUIDA") {
