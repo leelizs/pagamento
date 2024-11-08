@@ -69,26 +69,29 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ valor: valorFormatado })
             })
-                .then(response => response.text()) // Alteração para text() temporariamente
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Resposta da API:", data); // Verifique o que está sendo retornado
-                    try {
-                        const jsonData = JSON.parse(data); // Tente converter manualmente para JSON
-                        if (jsonData.error) {
-                            console.error("Erro da API PIX:", jsonData.error);
-                            document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: " + jsonData.error + "</p>";
-                            return;
-                        }
-                        // Continue com o processamento dos dados
-                    } catch (err) {
-                        console.error("Erro ao converter resposta para JSON:", err);
-                        document.getElementById("qrcode").innerHTML = "<p>Erro ao processar resposta do servidor.</p>";
+                    console.log("Resposta da API:", data); // Exibe a resposta completa
+
+                    if (data.error) {
+                        console.error("Erro da API PIX:", data.error);
+                        document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: " + data.error + "</p>";
+                        return;
                     }
+
+                    // Verifique se a chave copiaECola existe
+                    const copiaECola = data.copiaECola || data.qrcode?.copiaECola;  // Ajuste conforme necessário
+
+                    if (!copiaECola || copiaECola.trim() === "") {
+                        console.error("Erro: copiaECola está vazio ou inválido.");
+                        document.getElementById("qrcode").innerHTML = "<p>Erro ao gerar QR Code: código Copia e Cola inválido.</p>";
+                        return;
+                    }
+
+                    mostrarQRCodeModal(copiaECola, 600);
+                    salvarQRCodeLocal(copiaECola, data.txid);
                 })
-                .catch(error => {
-                    console.error("Erro ao gerar QR Code:", error);
-                    document.getElementById("qrcode").innerHTML = "<p>Erro inesperado ao gerar QR Code.</p>";
-                });
+
 
         }
 
@@ -114,6 +117,7 @@
             // Armazenando o valor de copiaECola no atributo data-* do botão
             copiarBtn.setAttribute("data-copiaecola", codigoCopiaECola);
 
+            // Inicia a contagem de expiração
             contadorExpiracao = setInterval(() => {
                 if (tempoExpiracao <= 0) {
                     cancelarQRCode();
@@ -121,7 +125,7 @@
                     const minutos = Math.floor(tempoExpiracao / 60);
                     const segundos = tempoExpiracao % 60;
                     timerElement.textContent = `Expira em: ${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
-                    tempoExpiracao--;
+                    tempoExpiracao--; // Decrementa o tempo
                 }
             }, 1000);
         }

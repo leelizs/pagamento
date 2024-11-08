@@ -3,6 +3,8 @@
 const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
+const path = require("path");
+
 require("dotenv").config();  // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
