@@ -11,7 +11,9 @@ const { obterToken } = require("./create-qrcode");
 // Função para verificar o status do pagamento
 async function verificarStatusPagamento(txid) {
   try {
+    // Obtém o token de acesso
     const token = await obterToken();
+    console.log("Token obtido para verificação de pagamento.");
 
     const agent = new https.Agent({
       pfx: certificadoBuffer,
@@ -28,9 +30,17 @@ async function verificarStatusPagamento(txid) {
       httpsAgent: agent,
     };
 
+    // Requisição para verificar o status do pagamento
     const statusResponse = await axios(configStatus);
+    console.log("Resposta da API de status:", statusResponse.data); // Log da resposta
     return statusResponse.data;
   } catch (error) {
+    // Log do erro detalhado
+    if (error.response) {
+      console.error("Erro ao verificar status do pagamento:", error.response.status, error.response.data);
+    } else {
+      console.error("Erro desconhecido ao verificar status do pagamento:", error.message);
+    }
     throw new Error("Erro ao verificar o status do pagamento");
   }
 }
