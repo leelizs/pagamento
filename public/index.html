@@ -8,16 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
     <style>
-        .modal {
+        .modal,
+        .modal-overlay {
             display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            background-color: white;
-            border: 2px solid #000;
-            z-index: 1000;
         }
 
         .modal-overlay {
@@ -29,6 +22,40 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: white;
+            border: 2px solid #000;
+            z-index: 1000;
+            width: 300px;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            /* Alinha o conteúdo no centro horizontalmente */
+        }
+
+        .modal #modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Garante que os elementos dentro da modal também fiquem centralizados */
+            justify-content: center;
+            text-align: center;
+        }
+
+        button.cancelar-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
         }
 
         .spinner {
@@ -59,19 +86,23 @@
     <button onclick="gerarQRCode()">Gerar QR Code</button>
     <div id="qrcode" role="alert" aria-live="polite"></div>
 
-    <!-- Indicador de carregamento -->
-    <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
-        <p>Verificando pagamento... <span class="spinner"></span></p>
-    </div>
-
     <div class="modal-overlay" id="modal-overlay"></div>
     <div class="modal" id="modal">
         <div id="modal-content">
             <img id="qrCodeImage" alt="QR Code para pagamento" style="max-width: 200px;">
             <p><strong>Código Copia e Cola:</strong></p>
             <button id="copiarBtn" onclick="copiarCopiaCola()" aria-label="Copiar código Copia e Cola">Copiar</button>
-            <p id="timer" aria-live="assertive"></p> <!-- Acessibilidade: alteração de timer -->
-            <button onclick="cancelarQRCode()" aria-label="Cancelar geração do QR Code">Cancelar QR Code</button>
+            <p id="timer" aria-live="assertive"></p>
+
+            <!-- Mensagem de confirmação de pagamento -->
+            <div id="mensagemConfirmacaoPagamento" style="display:none; text-align:center;">
+                <span style="font-size: 30px; color: green;">✔️</span>
+                <p style="font-size: 18px; color: #4CAF50;">Pagamento recebido com sucesso!</p>
+            </div>
+
+            <!-- Botão de cancelar -->
+            <button onclick="cancelarQRCode()" class="cancelar-btn" aria-label="Cancelar geração do QR Code">Cancelar QR
+                Code</button>
         </div>
     </div>
 
@@ -150,22 +181,22 @@
             const timerElement = document.getElementById("timer");
             const copiarBtn = document.getElementById("copiarBtn");
 
-            modalOverlay.style.display = "block";
-            modal.style.display = "block";
+            // Aguardar um ciclo de renderização antes de exibir a modal
+            setTimeout(() => {
+                modalOverlay.style.display = "block";
+                modal.style.display = "block";
+            }, 0); // O tempo de 0 ms permite um ciclo de renderização antes da exibição
 
-            // Gerar o QR Code a partir do código Copia e Cola usando a API QRCode
             QRCode.toDataURL(codigoCopiaECola, function (err, url) {
                 if (err) {
                     console.error("Erro ao gerar QR Code:", err);
                     return;
                 }
-                qrCodeImage.src = url;  // Usando a URL do QR Code gerado dinamicamente
+                qrCodeImage.src = url;
             });
 
-            // Armazenando o valor de copiaECola no atributo data-* do botão
             copiarBtn.setAttribute("data-copiaecola", codigoCopiaECola);
 
-            // Inicia a contagem de expiração
             contadorExpiracao = setInterval(() => {
                 if (tempoExpiracao <= 0) {
                     cancelarQRCode();
@@ -173,7 +204,7 @@
                     const minutos = Math.floor(tempoExpiracao / 60);
                     const segundos = tempoExpiracao % 60;
                     timerElement.textContent = `Expira em: ${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
-                    tempoExpiracao--; // Decrementa o tempo
+                    tempoExpiracao--;
                 }
             }, 1000);
         }
@@ -203,7 +234,6 @@
             localStorage.removeItem("qrCode");
             localStorage.removeItem("expiracao");
             localStorage.removeItem("txid");
-            document.getElementById("loading").style.display = "none";
         }
 
         function iniciarVerificacaoPagamento(txid) {
@@ -212,15 +242,10 @@
                 return;
             }
 
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("qrcode").style.display = "none";
-
-            //console.log("TXID enviado para o servidor:", txid); // Verifique aqui o txid
             const intervalo = setInterval(() => {
                 fetch(`/api/verificar-status?txid=${txid}`)
                     .then(response => response.json())
                     .then(data => {
-                        //console.log("Resposta do backend:", data);
                         if (data.status === "CONCLUIDA") {
                             clearInterval(intervalo);
                             exibirConfirmacaoPagamento();
@@ -228,30 +253,41 @@
                             console.log("Aguardando pagamento...");
                         } else if (data.status === "REJEITADO") {
                             clearInterval(intervalo);
-                            alert("Pagamento rejeitado.");
+                            alert("Pagamento rejeitado!");
                             cancelarQRCode();
                         }
                     })
-                    .catch(error => console.error("Erro ao verificar pagamento:", error));
+                    .catch(err => {
+                        console.error("Erro ao verificar pagamento:", err);
+                        clearInterval(intervalo);
+                    });
             }, intervaloVerificacao);
         }
 
-
         function exibirConfirmacaoPagamento() {
-            // Criando o conteúdo da mensagem com o ícone de confirmação e estilização
-            const mensagem = `
-        <div style="text-align: center; padding: 20px; background-color: #4CAF50; color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); font-size: 18px;">
-            <span style="font-size: 30px; font-weight: bold;">✔️</span>
-            <p style="margin-top: 10px;">Pagamento recebido com sucesso!</p>
-        </div>
-    `;
-            // Chama a função para cancelar o QR Code após a confirmação
-            document.getElementById("loading").style.display = "none"; // Esconder o indicador de carregamento
-            document.getElementById("qrcode").style.display = "block"; // Exibe a mensagem de sucesso
-            document.getElementById("qrcode").innerHTML = mensagem;
-            cancelarQRCode();
-        }
+            // Exibe a mensagem de sucesso
+            document.getElementById("mensagemConfirmacaoPagamento").style.display = "block";
 
+            // Remove ou oculta o QR Code, código Copia e Cola, e timer
+            document.getElementById("qrCodeImage").style.display = "none"; // Oculta o QR Code
+            document.getElementById("copiarBtn").style.display = "none";  // Oculta o botão de copiar
+            document.getElementById("timer").style.display = "none";      // Oculta o timer
+
+            // Remove o texto "Código Copia e Cola:"
+            const codigoTexto = document.querySelector("p strong");
+            if (codigoTexto) {
+                codigoTexto.style.display = "none"; // Oculta o texto "Código Copia e Cola"
+            }
+
+            // Verifique se a modal e o overlay já estão visíveis antes de mostrá-los
+            const modalOverlay = document.getElementById("modal-overlay");
+            const modal = document.getElementById("modal");
+
+            if (modalOverlay.style.display !== "block" && modal.style.display !== "block") {
+                modalOverlay.style.display = "block";
+                modal.style.display = "block";
+            }
+        }
 
         function salvarQRCodeLocal(codigo, txid) {
             if (txid) {
@@ -279,8 +315,17 @@
             }
         }
 
+        window.onload = () => {
+            // Garante que a modal está oculta quando a página é carregada
+            const modal = document.getElementById("modal");
+            const modalOverlay = document.getElementById("modal-overlay");
 
-        window.onload = verificarQRCodeLocal;
+            modal.style.display = "none";
+            modalOverlay.style.display = "none";
+
+            verificarQRCodeLocal();
+        };
+
     </script>
 
 </body>
