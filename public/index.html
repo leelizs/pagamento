@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerar QR Code PIX</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
     <style>
         .modal {
             display: none;
@@ -173,11 +174,12 @@
                 console.error("TXID inválido ou não definido.");
                 return;
             }
-
+            console.log("TXID enviado para o servidor:", txid);
             const intervalo = setInterval(() => {
                 fetch(`/api/verificar-status/${txid}`) // Mudança para o novo endpoint
                     .then(response => response.json())
                     .then(data => {
+                        console.log("Resposta do backend:", data);
                         if (data.status === "CONCLUIDA") {
                             clearInterval(intervalo);
                             exibirConfirmacaoPagamento();

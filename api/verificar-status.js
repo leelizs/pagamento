@@ -39,10 +39,13 @@ async function verificarStatusPagamento(txid) {
 module.exports = async (req, res) => {
   if (req.method === "GET") {
     try {
-      const { txid } = req.query; // Corrigido para capturar de query (caso esteja em query) 
+      const txid = req.params[0]; // Agora, o txid vem de params[0]
+      console.log("Verificando pagamento para TXID:", txid);
       const statusData = await verificarStatusPagamento(txid);
+      console.log("Status de pagamento recebido:", statusData); 
       res.json(statusData);
     } catch (error) {
+      console.error("Erro ao verificar status de pagamento:", error);
       res.status(500).json({ error: "Erro ao verificar status de pagamento" });
     }
   } else {

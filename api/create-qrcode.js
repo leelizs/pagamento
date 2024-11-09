@@ -23,6 +23,8 @@ async function obterToken() {
       passphrase: "",
     });
 
+    console.log("Obtendo token...");
+
     const configToken = {
       method: "POST",
       url: "https://pix.api.efipay.com.br/oauth/token",
@@ -72,16 +74,6 @@ async function gerarQRCode(valor) {
 
     // Fazendo a requisição e obtendo a resposta
     const qrcodeResponse = await axios(qrcodeConfig);
-
-    // Log da resposta para debug
-    console.log("Resposta da API:", qrcodeResponse);
-    console.log("Tipo de conteúdo:", qrcodeResponse.headers["content-type"]);
-
-    // Verifica se o conteúdo retornado é JSON
-    if (!qrcodeResponse.headers["content-type"].includes("application/json")) {
-      console.error("A resposta não é JSON, tipo encontrado:", qrcodeResponse.headers["content-type"]);
-      throw new Error("Resposta da API não é JSON");
-    }
 
     // Retorna o QR Code e informações adicionais
     return {

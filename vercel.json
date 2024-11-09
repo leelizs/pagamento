@@ -1,14 +1,13 @@
 {
-    "version": 2,
-    "routes": [
-      {
-        "src": "/api/create-qrcode",
-        "dest": "/api/create-qrcode.js"
-      },
-      {
-        "src": "/api/verificar-status",
-        "dest": "/api/verificar-status.js"
-      }
-    ]
-  }
-  
+  "version": 2,
+  "routes": [
+    {
+      "src": "/api/create-qrcode",
+      "dest": "/api/create-qrcode.js"
+    },
+    {
+      "src": "/api/verificar-status/(.*)",
+      "dest": "/api/verificar-status.js"
+    }
+  ]
+}
