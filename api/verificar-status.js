@@ -39,10 +39,13 @@ async function verificarStatusPagamento(txid) {
 module.exports = async (req, res) => {
   if (req.method === "GET") {
     try {
-      const txid = req.params[0]; // Agora, o txid vem de params[0]
+      // Captura o txid diretamente da URL (usando params.txid)
+      const txid = req.params.txid; // O txid é passado como parâmetro de rota (vercel.json: "/api/verificar-status/:txid")
       console.log("Verificando pagamento para TXID:", txid);
+      
       const statusData = await verificarStatusPagamento(txid);
       console.log("Status de pagamento recebido:", statusData); 
+      
       res.json(statusData);
     } catch (error) {
       console.error("Erro ao verificar status de pagamento:", error);
