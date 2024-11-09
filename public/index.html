@@ -81,7 +81,8 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Resposta da API:", data); // Exibe a resposta completa
+                    //console.log("Resposta da API:", data); // Exibe a resposta completa
+                    //console.log("TXID:", data.qrcode.txid); // Acessando corretamente o txid dentro do objeto 'qrcode'
 
                     if (data.error) {
                         console.error("Erro da API PIX:", data.error);
@@ -90,7 +91,7 @@
                     }
 
                     // Verifique se a chave copiaECola existe
-                    const copiaECola = data.copiaECola || data.qrcode?.copiaECola;  // Ajuste conforme necessário
+                    const copiaECola = data.qrcode.copiaECola;
 
                     if (!copiaECola || copiaECola.trim() === "") {
                         console.error("Erro: copiaECola está vazio ou inválido.");
@@ -99,12 +100,26 @@
                     }
 
                     mostrarQRCodeModal(copiaECola, 600);
-                    salvarQRCodeLocal(copiaECola, data.txid);
+                    salvarQRCodeLocal(copiaECola, data.qrcode.txid); // Salvando o txid corretamente
+
+                    // Exibe o txid no HTML para debug
+                    //document.getElementById("qrcode").innerHTML += `<p><strong>TXID:</strong> ${data.qrcode.txid}</p>`;
                 })
                 .catch(error => {
                     console.error("Erro:", error);
                     alert("Erro ao gerar QR Code: " + error.message);
                 });
+        }
+
+        function salvarQRCodeLocal(codigo, txid) {
+            if (txid) {
+                //console.log("Salvando no localStorage: ", txid);  // Adiciona este log para garantir que o txid está sendo passado
+                localStorage.setItem("qrCode", codigo);
+                localStorage.setItem("txid", txid);
+                localStorage.setItem("expiracao", Date.now() + expiracaoTempo * 1000);
+            } else {
+                console.error("TXID é inválido ou não definido.");
+            }
         }
 
         function mostrarQRCodeModal(codigoCopiaECola, tempoExpiracao) {
@@ -174,12 +189,12 @@
                 console.error("TXID inválido ou não definido.");
                 return;
             }
-            console.log("TXID enviado para o servidor:", txid);
+            //console.log("TXID enviado para o servidor:", txid); // Verifique aqui o txid
             const intervalo = setInterval(() => {
-                fetch(`/api/verificar-status?txid=${txid}`) // Mudança para o novo endpoint
+                fetch(`/api/verificar-status?txid=${txid}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log("Resposta do backend:", data);
+                        //console.log("Resposta do backend:", data);
                         if (data.status === "CONCLUIDA") {
                             clearInterval(intervalo);
                             exibirConfirmacaoPagamento();
@@ -194,6 +209,7 @@
                     .catch(error => console.error("Erro ao verificar pagamento:", error));
             }, intervaloVerificacao);
         }
+
 
         function exibirConfirmacaoPagamento() {
             // Criando o conteúdo da mensagem com o ícone de confirmação e estilização
@@ -213,15 +229,23 @@
 
 
         function salvarQRCodeLocal(codigo, txid) {
-            localStorage.setItem("qrCode", codigo);
-            localStorage.setItem("txid", txid);
-            localStorage.setItem("expiracao", Date.now() + expiracaoTempo * 1000);
+            if (txid) {
+                //console.log("Salvando no localStorage: ", txid);  // Adiciona este log para garantir que o txid está sendo passado
+                localStorage.setItem("qrCode", codigo);
+                localStorage.setItem("txid", txid);
+                localStorage.setItem("expiracao", Date.now() + expiracaoTempo * 1000);
+            } else {
+                console.error("TXID é inválido ou não definido.");
+            }
         }
 
         function verificarQRCodeLocal() {
             const qrCodeData = localStorage.getItem("qrCode");
             const expiracao = localStorage.getItem("expiracao");
             const txid = localStorage.getItem("txid");
+
+           // console.log("Verificando localStorage: ", { qrCodeData, expiracao, txid });  // Log para verificar
+
             if (qrCodeData && expiracao && Date.now() < expiracao) {
                 mostrarQRCodeModal(qrCodeData, Math.floor((expiracao - Date.now()) / 1000));
                 iniciarVerificacaoPagamento(txid);
@@ -229,6 +253,7 @@
                 cancelarQRCode();
             }
         }
+
 
         window.onload = verificarQRCodeLocal;
     </script>

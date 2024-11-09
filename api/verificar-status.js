@@ -5,8 +5,8 @@ require("dotenv").config();  // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
 
-// Função para obter o token de acesso
-const { obterToken } = require("./create-qrcode");
+// Importando as funções obterToken e gerarQRCode do arquivo create-qrcode
+const { obterToken, gerarQRCode } = require("./create-qrcode");
 
 // Função para verificar o status do pagamento
 async function verificarStatusPagamento(txid) {

@@ -122,3 +122,7 @@ module.exports = async (req, res) => {
     res.status(405).json({ error: "Método não permitido" });
   }
 };
+
+// Exporta as funções para serem usadas em outros módulos
+module.exports.obterToken = obterToken;
+module.exports.gerarQRCode = gerarQRCode;
