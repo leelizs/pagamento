@@ -1,11 +1,12 @@
 const https = require("https");
 const axios = require("axios");
-const fs = require("fs");
-const { obterToken } = require("./create-qrcode");
-
 require("dotenv").config();  // Carregar variáveis de ambiente
+
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
+
+// Função para obter o token de acesso
+const { obterToken } = require("./create-qrcode");
 
 // Função para verificar o status do pagamento
 async function verificarStatusPagamento(txid) {
@@ -38,9 +39,9 @@ async function verificarStatusPagamento(txid) {
 module.exports = async (req, res) => {
   if (req.method === "GET") {
     try {
-      const { txid } = req.query;
+      const { txid } = req.query; // Corrigido para capturar de query (caso esteja em query) 
       const statusData = await verificarStatusPagamento(txid);
-      res.status(200).json(statusData);
+      res.json(statusData);
     } catch (error) {
       res.status(500).json({ error: "Erro ao verificar status de pagamento" });
     }

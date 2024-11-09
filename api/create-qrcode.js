@@ -2,14 +2,14 @@ const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
 
-require("dotenv").config();  // Carregar variáveis de ambiente
+require("dotenv").config(); // Carregar variáveis de ambiente
 const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
 const certificadoBuffer = Buffer.from(base64, "base64");
 
-// Credenciais PIX (agora a partir do arquivo .env)
+// Credenciais PIX (do arquivo .env)
 const credenciais = {
-  client_id: process.env.CLIENT_ID,  // Usando variáveis de ambiente
-  client_secret: process.env.CLIENT_SECRET,  // Usando variáveis de ambiente
+  client_id: process.env.CLIENT_ID, // Usando variáveis de ambiente
+  client_secret: process.env.CLIENT_SECRET, // Usando variáveis de ambiente
 };
 
 // Função para obter o token de acesso
@@ -83,7 +83,7 @@ async function gerarQRCode(valor) {
       throw new Error("Resposta da API não é JSON");
     }
 
-    // Se a resposta for JSON, continue com o processamento
+    // Retorna o QR Code e informações adicionais
     return {
       qrcodeData: qrcodeResponse.data,
       txid: qrcodeResponse.data.txid,
@@ -95,10 +95,8 @@ async function gerarQRCode(valor) {
   }
 }
 
-
 // Função serverless para Vercel
 module.exports = async (req, res) => {
-  console.log('Função chamada com método:', req.method);
   if (req.method === "POST") {
     try {
       const { valor } = req.body;
@@ -108,9 +106,10 @@ module.exports = async (req, res) => {
 
       if (!qrcodeData) {
         res.status(500).json({ error: "Erro ao gerar QR Code." });
+        return;
       }
 
-      res.status(200).json({
+      res.json({
         qrcode: {
           imagemQrcode: qrcodeData.copiaECola,
           txid: qrcodeData.txid,

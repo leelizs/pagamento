@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node index.js",
-    "dev": "vercel dev"
+    "dev": "node server.js"
   },
   "dependencies": {
     "axios": "^0.21.1",
