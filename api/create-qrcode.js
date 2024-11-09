@@ -74,6 +74,12 @@ async function gerarQRCode(valor) {
 
     // Fazendo a requisição e obtendo a resposta
     const qrcodeResponse = await axios(qrcodeConfig);
+    console.log("Resposta da API do QR Code:", qrcodeResponse.data);
+
+    if (!qrcodeResponse.data || !qrcodeResponse.data.txid) {
+      console.error("TXID não encontrado na resposta da API:", qrcodeResponse.data);
+      throw new Error("TXID não encontrado na resposta da API.");
+    }
 
     // Retorna o QR Code e informações adicionais
     return {
@@ -109,7 +115,8 @@ module.exports = async (req, res) => {
         },
       });
     } catch (error) {
-      res.status(500).json({ error: "Erro ao gerar QR Code" });
+      console.error("Erro ao gerar o QR Code:", error.message);
+      res.status(500).json({ error: error.message || "Erro ao gerar QR Code" });
     }
   } else {
     res.status(405).json({ error: "Método não permitido" });
