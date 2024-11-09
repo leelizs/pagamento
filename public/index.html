@@ -176,7 +176,7 @@
             }
             console.log("TXID enviado para o servidor:", txid);
             const intervalo = setInterval(() => {
-                fetch(`/api/verificar-status/${txid}`) // Mudança para o novo endpoint
+                fetch(`/api/verificar-status?txid=${txid}`) // Mudança para o novo endpoint
                     .then(response => response.json())
                     .then(data => {
                         console.log("Resposta do backend:", data);

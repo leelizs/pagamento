@@ -49,13 +49,19 @@ async function verificarStatusPagamento(txid) {
 module.exports = async (req, res) => {
   if (req.method === "GET") {
     try {
-      // Captura o txid diretamente da URL (usando params.txid)
-      const txid = req.params.txid; // O txid é passado como parâmetro de rota (vercel.json: "/api/verificar-status/:txid")
+      // Captura o txid a partir dos query params
+      const txid = req.query.txid; // O txid é passado como query string
+
+      if (!txid) {
+        res.status(400).json({ error: "TXID é obrigatório." });
+        return;
+      }
+
       console.log("Verificando pagamento para TXID:", txid);
-      
+
       const statusData = await verificarStatusPagamento(txid);
-      console.log("Status de pagamento recebido:", statusData); 
-      
+      console.log("Status de pagamento recebido:", statusData);
+
       res.json(statusData);
     } catch (error) {
       console.error("Erro ao verificar status de pagamento:", error);

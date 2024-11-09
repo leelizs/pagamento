@@ -6,7 +6,7 @@
       "dest": "/api/create-qrcode.js"
     },
     {
-      "src": "/api/verificar-status/(.*)",
+      "src": "/api/verificar-status",
       "dest": "/api/verificar-status.js"
     }
   ]
