@@ -2,17 +2,15 @@ const https = require("https");
 const axios = require("axios");
 const fs = require("fs");
 
-require("dotenv").config(); // Carregar variáveis de ambiente
-const base64 = process.env.PIX_CERTIFICADO_BASE64; // Vercel Secret
+require("dotenv").config();
+const base64 = process.env.PIX_CERTIFICADO_BASE64;
 const certificadoBuffer = Buffer.from(base64, "base64");
 
-// Credenciais PIX (do arquivo .env)
 const credenciais = {
-  client_id: process.env.CLIENT_ID, // Usando variáveis de ambiente
-  client_secret: process.env.CLIENT_SECRET, // Usando variáveis de ambiente
+  client_id: process.env.CLIENT_ID,
+  client_secret: process.env.CLIENT_SECRET,
 };
 
-// Função para obter o token de acesso
 async function obterToken() {
   try {
     const data_credentials = `${credenciais.client_id}:${credenciais.client_secret}`;
@@ -22,8 +20,6 @@ async function obterToken() {
       pfx: certificadoBuffer,
       passphrase: "",
     });
-
-    console.log("Obtendo token...");
 
     const configToken = {
       method: "POST",
@@ -46,7 +42,6 @@ async function obterToken() {
   }
 }
 
-// Função para gerar o QR Code
 async function gerarQRCode(valor) {
   try {
     const token = await obterToken();
@@ -73,10 +68,8 @@ async function gerarQRCode(valor) {
     };
 
     const qrcodeResponse = await axios(qrcodeConfig);
-    console.log("Resposta da API do QR Code:", qrcodeResponse.data);
 
     if (!qrcodeResponse.data || !qrcodeResponse.data.txid) {
-      console.error("TXID não encontrado na resposta da API:", qrcodeResponse.data);
       throw new Error("TXID não encontrado na resposta da API.");
     }
 
@@ -91,16 +84,20 @@ async function gerarQRCode(valor) {
   }
 }
 
-// Função serverless para Vercel
 module.exports = async (req, res) => {
-  // Configuração de CORS para permitir requisições de um domínio específico
   res.setHeader('Access-Control-Allow-Origin', 'https://cardapiofamiliadeouro.netlify.app');
-  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    // Responder a requisições preflight de CORS
+    res.status(200).end();
+    return;
+  }
 
   if (req.method === "POST") {
     try {
-      const { valor } = req.body;
+      const { valor } = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
       const valorFormatado = parseFloat(valor).toFixed(2);
 
       const qrcodeData = await gerarQRCode(valorFormatado);
@@ -126,6 +123,5 @@ module.exports = async (req, res) => {
   }
 };
 
-// Exporta as funções para serem usadas em outros módulos
 module.exports.obterToken = obterToken;
 module.exports.gerarQRCode = gerarQRCode;
