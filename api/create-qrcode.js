@@ -72,7 +72,6 @@ async function gerarQRCode(valor) {
       },
     };
 
-    // Fazendo a requisição e obtendo a resposta
     const qrcodeResponse = await axios(qrcodeConfig);
     console.log("Resposta da API do QR Code:", qrcodeResponse.data);
 
@@ -81,7 +80,6 @@ async function gerarQRCode(valor) {
       throw new Error("TXID não encontrado na resposta da API.");
     }
 
-    // Retorna o QR Code e informações adicionais
     return {
       qrcodeData: qrcodeResponse.data,
       txid: qrcodeResponse.data.txid,
@@ -95,6 +93,11 @@ async function gerarQRCode(valor) {
 
 // Função serverless para Vercel
 module.exports = async (req, res) => {
+  // Configuração de CORS para permitir requisições de um domínio específico
+  res.setHeader('Access-Control-Allow-Origin', 'https://cardapiofamiliadeouro.netlify.app');
+  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === "POST") {
     try {
       const { valor } = req.body;
