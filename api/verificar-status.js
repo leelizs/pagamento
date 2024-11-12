@@ -47,6 +47,16 @@ async function verificarStatusPagamento(txid) {
 
 // Função serverless para Vercel
 module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://cardapiofamiliadeouro.netlify.app');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    // Responder a requisições preflight de CORS
+    res.status(200).end();
+    return;
+  }
+
   if (req.method === "GET") {
     try {
       // Captura o txid a partir dos query params
